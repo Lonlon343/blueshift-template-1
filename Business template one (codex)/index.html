@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Düsseldorf Immo Online | Real Estate Plattform</title>
+    <meta
+      name="description"
+      content="Düsseldorf Immo Online – High-End Real-Estate Plattform mit Immo-Cockpit, Floating Search und virtueller Besichtigung."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Sora", "ui-sans-serif", "system-ui", "Segoe UI", "sans-serif"],
+            },
+            colors: {
+              dus: {
+                blue: "#0055A4",
+                cyan: "#18b7ea",
+                silver: "#d8dfe8",
+                ink: "#1f2937",
+              },
+            },
+            boxShadow: {
+              soft: "0 12px 34px rgba(15, 23, 42, 0.09)",
+              card: "0 10px 26px rgba(2, 32, 71, 0.08)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background: radial-gradient(circle at top right, #ffffff 0%, #f8fbff 42%, #eef3f8 100%);
+      }
+
+      .page-fade {
+        animation: pageFade 260ms ease-out;
+      }
+
+      @keyframes pageFade {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="font-sans text-slate-900 antialiased">
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const { useEffect, useMemo, useState } = React;
+
+      const ASSETS = {
+        logo: "./Du%CC%88sseldorf%20Immo%20LOGO.png",
+        office: "./90f673c0-302f-4f48-afa9-442fdd4c4ca4.jpg",
+        consultation: "./212be183-3ac4-4195-b823-8495923dcfc3.jpg",
+        mapApp: "./immo%20app.png",
+        building: "./immogebauede.png",
+        team: "./Gemini_Generated_Image_1wgbut1wgbut1wgb.png",
+      };
+
+      const PROPERTIES = [
+        {
+          id: "DUS-301",
+          title: "Penthouse am Rhein",
+          district: "Oberkassel",
+          price: "1.290.000 EUR",
+          area: "162 m2",
+          rooms: "4.5 Zimmer",
+          type: "Kauf",
+          image: ASSETS.building,
+        },
+        {
+          id: "DUS-118",
+          title: "Altbaujuwel mit Balkon",
+          district: "Pempelfort",
+          price: "3.250 EUR/Monat",
+          area: "118 m2",
+          rooms: "3 Zimmer",
+          type: "Miete",
+          image: ASSETS.building,
+        },
+        {
+          id: "DUS-522",
+          title: "City-Apartment am Hofgarten",
+          district: "Stadtmitte",
+          price: "598.000 EUR",
+          area: "74 m2",
+          rooms: "2 Zimmer",
+          type: "Kauf",
+          image: ASSETS.building,
+        },
+        {
+          id: "DUS-230",
+          title: "Familienwohnung mit Terrasse",
+          district: "Bilk",
+          price: "2.980 EUR/Monat",
+          area: "138 m2",
+          rooms: "5 Zimmer",
+          type: "Miete",
+          image: ASSETS.building,
+        },
+        {
+          id: "DUS-409",
+          title: "Neubau-Loft mit Skyline-Blick",
+          district: "Derendorf",
+          price: "945.000 EUR",
+          area: "128 m2",
+          rooms: "3.5 Zimmer",
+          type: "Kauf",
+          image: ASSETS.building,
+        },
+      ];
+
+      const DISTRICT_PINS = [
+        { id: "Oberkassel", top: "32%", left: "28%" },
+        { id: "Pempelfort", top: "24%", left: "56%" },
+        { id: "Stadtmitte", top: "45%", left: "49%" },
+        { id: "Bilk", top: "62%", left: "54%" },
+        { id: "Derendorf", top: "14%", left: "66%" },
+      ];
+
+      const CRM_STAGES = ["Neu", "Qualifiziert", "Angebot", "Gewonnen"];
+      const CRM_DEALS = [
+        { id: "CRM-201", title: "Neubau-Portfolio Bilk", customer: "Rheinhafen Invest AG", value: 215000, stage: "Angebot", owner: "M. Richter", next: "Finanzierungsrunde abstimmen" },
+        { id: "CRM-202", title: "Premium Vermietung Oberkassel", customer: "Helion Capital GmbH", value: 89000, stage: "Qualifiziert", owner: "J. Stein", next: "Exposé freigeben" },
+        { id: "CRM-203", title: "Off-Market Villa Golzheim", customer: "Private Family Office", value: 340000, stage: "Neu", owner: "L. Werner", next: "Ersttermin vereinbaren" },
+        { id: "CRM-204", title: "Serviced Apartments Medienhafen", customer: "Skyline Living Group", value: 126000, stage: "Gewonnen", owner: "S. Kraft", next: "Onboarding Vermarktung" },
+      ];
+      const CRM_CONTACTS = [
+        { id: "C-10", name: "Anna Berger", company: "Rheinhafen Invest AG", role: "Investment Manager", email: "anna.berger@rheinhafen-invest.de", status: "Aktiv" },
+        { id: "C-11", name: "Tobias Klein", company: "Helion Capital GmbH", role: "Head of Acquisitions", email: "klein@helion-capital.de", status: "Aktiv" },
+        { id: "C-12", name: "Mila Hartmann", company: "Skyline Living Group", role: "Asset Lead", email: "m.hartmann@skylineliving.com", status: "Follow-up" },
+      ];
+      const CRM_ACTIVITY = [
+        { id: "A1", text: "Exposé für Neubau-Portfolio Bilk wurde versendet.", time: "vor 18 Min." },
+        { id: "A2", text: "Besichtigungstermin in Pempelfort auf Mittwoch 10:30 bestätigt.", time: "vor 46 Min." },
+        { id: "A3", text: "Deal 'Serviced Apartments Medienhafen' auf Gewonnen gesetzt.", time: "heute 09:05" },
+      ];
+
+      function BuildingIcon({ className = "h-5 w-5" }) {
+        return (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M6 21V7l6-4 6 4v14M10 10h4m-4 4h4m-4 4h4" />
+          </svg>
+        );
+      }
+
+      function SearchIcon({ className = "h-5 w-5" }) {
+        return (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" />
+          </svg>
+        );
+      }
+
+      function ChartIcon({ className = "h-5 w-5" }) {
+        return (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h16M7 16v-5m5 5V7m5 9V10" />
+          </svg>
+        );
+      }
+
+      function UsersIcon({ className = "h-5 w-5" }) {
+        return (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4ZM8 12a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm8 2c-3.2 0-6 2-6 4.5V21h12v-2.5c0-2.5-2.8-4.5-6-4.5ZM8 14c-2.8 0-5 1.8-5 4v3h5" />
+          </svg>
+        );
+      }
+
+      function PipelineIcon({ className = "h-5 w-5" }) {
+        return (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h4v4H4V6Zm6 2h10m-10 8h10M4 14h4v4H4v-4Z" />
+          </svg>
+        );
+      }
+
+      function Navbar({ onEnterCockpit }) {
+        return (
+          <header className="sticky top-0 z-40 border-b border-dus-silver/70 bg-white/90 backdrop-blur">
+            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+              <a href="#" className="inline-flex items-center gap-3">
+                <span className="inline-flex h-11 w-11 items-center justify-center overflow-hidden bg-white">
+                  <img src={ASSETS.logo} alt="Düsseldorf Immo Online Logo" className="h-full w-full object-contain" />
+                </span>
+                <span className="text-sm font-bold tracking-tight text-dus-ink sm:text-base">Düsseldorf Immo Online</span>
+              </a>
+
+              <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex">
+                <a href="#vision" className="transition hover:text-dus-blue">Vision</a>
+                <a href="#features" className="transition hover:text-dus-blue">Features</a>
+              </nav>
+
+              <button
+                onClick={onEnterCockpit}
+                className="rounded-lg bg-dus-blue px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-[#004a8f]"
+              >
+                Zur Agentur-Plattform
+              </button>
+            </div>
+          </header>
+        );
+      }
+
+      function LandingPage({ onEnterCockpit }) {
+        return (
+          <div className="page-fade min-h-screen">
+            <Navbar onEnterCockpit={onEnterCockpit} />
+
+            <main>
+              <section id="vision" className="px-4 pb-14 pt-14 sm:px-6 lg:px-8 lg:pb-20 lg:pt-20">
+                <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
+                  <div>
+                
+                    <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-dus-ink sm:text-5xl">
+                      Düsseldorf Immo Online
+                    </h1>
+                    <p className="mt-4 max-w-xl text-lg leading-relaxed text-slate-600">
+                      Willkommen bei Düsseldorf Immo Online, der digitalen Startseite unserer Immobilienagentur.
+                      Interessenten suchen hier nach Objekten, während unser Team im integrierten CRM alle Leads,
+                      Besichtigungen und Abschlusschancen zentral steuert.
+                    </p>
+
+                    <div className="mt-8 flex flex-wrap gap-3">
+                      <button
+                        onClick={onEnterCockpit}
+                        className="rounded-lg bg-dus-blue px-5 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-[#004a8f]"
+                      >
+                        Mitarbeiter-CRM öffnen
+                      </button>
+                      <a
+                        href="#features"
+                        className="rounded-lg border border-dus-silver bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-dus-blue/40 hover:text-dus-blue"
+                      >
+                        So arbeitet unser Team
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="overflow-hidden rounded-3xl border border-dus-silver bg-white shadow-card">
+                    <img src={ASSETS.team} alt="Düsseldorf Immo Online Office mit Dashboard-Wall" className="h-[22rem] w-full object-cover" />
+                    <div className="grid gap-4 p-5 sm:grid-cols-3">
+                      <div className="rounded-xl border border-dus-silver bg-slate-50 p-3">
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Live Listings</p>
+                        <p className="mt-1 text-xl font-bold text-dus-ink">1.286</p>
+                      </div>
+                      <div className="rounded-xl border border-dus-silver bg-slate-50 p-3">
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Virtuelle Touren</p>
+                        <p className="mt-1 text-xl font-bold text-dus-ink">74%</p>
+                      </div>
+                      <div className="rounded-xl border border-dus-silver bg-slate-50 p-3">
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Avg. Match-Time</p>
+                        <p className="mt-1 text-xl font-bold text-dus-ink">2.8 Min.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section id="features" className="border-y border-dus-silver bg-white px-4 py-16 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl">
+                  <h2 className="text-3xl font-bold tracking-tight text-dus-ink">Ihre Immobilienagentur online mit integriertem Team-CRM</h2>
+                  <p className="mt-3 max-w-3xl text-slate-600">
+                    Die Plattform ist bewusst zweigeteilt: Außen eine hochwertige Objektsuche für Interessenten, innen
+                    ein voll integriertes CRM für Makler, Backoffice und Vertriebsleitung. So bleiben alle Vorgänge
+                    vom Erstkontakt bis zum Vertragsabschluss in einem durchgängigen Prozess.
+                  </p>
+
+                  <div className="mt-10 grid gap-5 md:grid-cols-3">
+                    <article className="rounded-2xl border border-dus-silver bg-slate-50 p-5 shadow-soft">
+                      <img src={ASSETS.mapApp} alt="Floating Search und Kartenfilter" className="h-36 w-full rounded-xl object-cover" loading="lazy" />
+                      <h3 className="mt-4 text-lg font-semibold text-dus-ink">Objektsuche für Interessenten</h3>
+                      <p className="mt-2 text-sm text-slate-600">Interessenten finden passende Objekte in Sekunden. Jede qualifizierte Suche kann intern direkt als Lead im CRM weiterbearbeitet werden.</p>
+                    </article>
+
+                    <article className="rounded-2xl border border-dus-silver bg-slate-50 p-5 shadow-soft">
+                      <img src="./Gemini_Generated_Image_1wgbut1wgbut1wgb%20%281%29.png" alt="Beratungsgespräch in moderner Wohnung" className="h-36 w-full rounded-xl object-cover" loading="lazy" />
+                      <h3 className="mt-4 text-lg font-semibold text-dus-ink">Von Besichtigung zu Follow-up</h3>
+                      <p className="mt-2 text-sm text-slate-600">Nach Besichtigung werden Aufgaben, Kontakt-Notizen und nächste Schritte automatisch im Mitarbeiter-CRM dokumentiert.</p>
+                    </article>
+
+                    <article className="rounded-2xl border border-dus-silver bg-slate-50 p-5 shadow-soft">
+                      <img src={ASSETS.building} alt="Neubau-Objekt in Düsseldorf" className="h-36 w-full rounded-xl object-cover" loading="lazy" />
+                      <h3 className="mt-4 text-lg font-semibold text-dus-ink">CRM für Makler-Teams</h3>
+                      <p className="mt-2 text-sm text-slate-600">Makler sehen Pipeline, Kontakte und Aktivitäten in Echtzeit und steuern Verkaufschancen transparent vom Erstkontakt bis Abschluss.</p>
+                    </article>
+                  </div>
+
+                  <article className="mt-8 rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+                    <h3 className="text-lg font-semibold text-dus-ink">So funktioniert das integrierte CRM im Alltag</h3>
+                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-xl border border-dus-silver bg-slate-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">1. Lead-Erfassung</p>
+                        <p className="mt-2 text-sm text-slate-700">Anfragen aus der öffentlichen Suche landen direkt als qualifizierte Leads im CRM.</p>
+                      </div>
+                      <div className="rounded-xl border border-dus-silver bg-slate-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">2. Team-Steuerung</p>
+                        <p className="mt-2 text-sm text-slate-700">Makler planen Besichtigungen, dokumentieren Notizen und verschieben Deals durch die Pipeline.</p>
+                      </div>
+                      <div className="rounded-xl border border-dus-silver bg-slate-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">3. Abschluss & Reporting</p>
+                        <p className="mt-2 text-sm text-slate-700">Leitung und Management sehen Forecasts, Conversion-Raten und den Status aller Objekte in Echtzeit.</p>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </section>
+            </main>
+
+            <footer className="border-t border-dus-silver bg-white px-4 py-10 sm:px-6 lg:px-8">
+              <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="inline-flex items-center gap-3">
+                  <span className="inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-dus-silver bg-white">
+                    <img src={ASSETS.logo} alt="Düsseldorf Immo Online Logo" className="h-full w-full object-cover" />
+                  </span>
+                  <span className="text-sm text-slate-600">Düsseldorf Immo Online – Real Estate Plattform</span>
+                </div>
+                <p className="text-sm text-slate-500">© 2026 Düsseldorf Immo Online. Alle Rechte vorbehalten.</p>
+              </div>
+            </footer>
+          </div>
+        );
+      }
+
+      function FloatingSearchBar({ filters, setFilters, districts }) {
+        return (
+          <div className="sticky top-4 z-20 rounded-2xl border border-dus-silver bg-white/95 p-3 shadow-soft backdrop-blur">
+            <div className="grid gap-2 md:grid-cols-4">
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Suche</label>
+                <div className="flex items-center gap-2 rounded-lg border border-dus-silver px-3 py-2">
+                  <SearchIcon className="h-4 w-4 text-slate-500" />
+                  <input
+                    value={filters.query}
+                    onChange={(e) => setFilters((prev) => ({ ...prev, query: e.target.value }))}
+                    placeholder="z. B. Penthouse Rheinblick, Bilk, Neubau..."
+                    className="w-full border-0 bg-transparent p-0 text-sm outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Viertel</label>
+                <select
+                  value={filters.district}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, district: e.target.value }))}
+                  className="w-full rounded-lg border border-dus-silver px-3 py-2 text-sm outline-none focus:border-dus-blue"
+                >
+                  <option value="Alle">Alle</option>
+                  {districts.map((district) => (
+                    <option key={district} value={district}>{district}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Typ</label>
+                <select
+                  value={filters.type}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, type: e.target.value }))}
+                  className="w-full rounded-lg border border-dus-silver px-3 py-2 text-sm outline-none focus:border-dus-blue"
+                >
+                  <option value="Alle">Alle</option>
+                  <option value="Kauf">Kauf</option>
+                  <option value="Miete">Miete</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function SkeletonCard() {
+        return (
+          <div className="animate-pulse rounded-2xl border border-dus-silver bg-white p-3 shadow-card">
+            <div className="h-40 w-full rounded-xl bg-slate-200" />
+            <div className="mt-3 h-4 w-3/4 rounded bg-slate-200" />
+            <div className="mt-2 h-3 w-1/2 rounded bg-slate-200" />
+            <div className="mt-4 h-8 w-full rounded-lg bg-slate-200" />
+          </div>
+        );
+      }
+
+      function SearchCockpit() {
+        const [filters, setFilters] = useState({ query: "", district: "Alle", type: "Alle" });
+        const [loading, setLoading] = useState(true);
+        const [hoveredDistrict, setHoveredDistrict] = useState(null);
+
+        const districts = useMemo(() => [...new Set(PROPERTIES.map((p) => p.district))], []);
+
+        const results = useMemo(() => {
+          return PROPERTIES.filter((property) => {
+            const queryMatch =
+              filters.query.trim() === "" ||
+              `${property.title} ${property.district}`.toLowerCase().includes(filters.query.toLowerCase());
+            const districtMatch = filters.district === "Alle" || property.district === filters.district;
+            const typeMatch = filters.type === "Alle" || property.type === filters.type;
+            return queryMatch && districtMatch && typeMatch;
+          });
+        }, [filters]);
+
+        useEffect(() => {
+          setLoading(true);
+          const timer = setTimeout(() => setLoading(false), 900);
+          return () => clearTimeout(timer);
+        }, [filters]);
+
+        return (
+          <section className="space-y-4">
+            <FloatingSearchBar filters={filters} setFilters={setFilters} districts={districts} />
+
+            <div className="grid gap-4 xl:grid-cols-5">
+              <article className="relative overflow-hidden rounded-2xl border border-dus-silver bg-white p-4 shadow-card xl:col-span-2">
+                <h3 className="text-base font-semibold text-dus-ink">Interaktive Quartierskarte</h3>
+                <p className="mt-1 text-xs text-slate-500">Hover auf ein Viertel hebt die passenden Objekte rechts hervor.</p>
+
+                <div className="relative mt-4 h-[25rem] overflow-hidden rounded-xl border border-dus-silver bg-slate-100">
+                  <img src={ASSETS.mapApp} alt="Düsseldorf Karte in App" className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-dus-blue/10" />
+
+                  {DISTRICT_PINS.map((pin) => {
+                    const active = hoveredDistrict === pin.id;
+                    return (
+                      <button
+                        key={pin.id}
+                        onMouseEnter={() => setHoveredDistrict(pin.id)}
+                        onMouseLeave={() => setHoveredDistrict(null)}
+                        className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-2 py-1 text-xs font-semibold transition ${
+                          active
+                            ? "border-dus-blue bg-dus-blue text-white"
+                            : "border-white bg-white/90 text-dus-ink"
+                        }`}
+                        style={{ top: pin.top, left: pin.left }}
+                      >
+                        {pin.id}
+                      </button>
+                    );
+                  })}
+                </div>
+              </article>
+
+              <article className="rounded-2xl border border-dus-silver bg-white p-4 shadow-card xl:col-span-3">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-dus-ink">Objektkacheln</h3>
+                  <span className="rounded-full bg-dus-blue/10 px-3 py-1 text-xs font-semibold text-dus-blue">
+                    {results.length} Treffer
+                  </span>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {loading && [1, 2, 3, 4].map((key) => <SkeletonCard key={key} />)}
+
+                  {!loading && results.length === 0 && (
+                    <div className="sm:col-span-2 rounded-xl border border-dus-silver bg-slate-50 p-6 text-center text-sm text-slate-600">
+                      Keine Treffer mit den aktuellen Filtern.
+                    </div>
+                  )}
+
+                  {!loading &&
+                    results.map((property) => {
+                      const active = hoveredDistrict && property.district === hoveredDistrict;
+                      return (
+                        <article
+                          key={property.id}
+                          onMouseEnter={() => setHoveredDistrict(property.district)}
+                          onMouseLeave={() => setHoveredDistrict(null)}
+                          className={`rounded-2xl border bg-white p-3 shadow-card transition ${
+                            active
+                              ? "border-dus-blue ring-2 ring-dus-blue/30"
+                              : "border-dus-silver hover:border-dus-blue/40"
+                          }`}
+                        >
+                          <img src={property.image} alt={property.title} className="h-36 w-full rounded-xl object-cover" loading="lazy" />
+                          <p className="mt-3 text-sm font-semibold text-dus-ink">{property.title}</p>
+                          <p className="text-xs text-slate-500">{property.district} · {property.area} · {property.rooms}</p>
+                          <p className="mt-2 text-sm font-bold text-dus-blue">{property.price}</p>
+                          <button className="mt-3 w-full rounded-lg bg-dus-blue px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#004a8f]">
+                            Virtuelle Besichtigung starten
+                          </button>
+                        </article>
+                      );
+                    })}
+                </div>
+              </article>
+            </div>
+          </section>
+        );
+      }
+
+      function MarketInsights() {
+        const data = [
+          { label: "Oberkassel", growth: 7.2 },
+          { label: "Pempelfort", growth: 5.8 },
+          { label: "Derendorf", growth: 6.4 },
+          { label: "Bilk", growth: 4.3 },
+        ];
+
+        return (
+          <section className="grid gap-4 md:grid-cols-3">
+            <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Durchschnittlicher Angebotspreis</p>
+              <p className="mt-2 text-3xl font-bold text-dus-ink">7.420 EUR/m2</p>
+              <p className="mt-2 text-xs font-semibold text-emerald-700">+4.1% vs. Vorquartal</p>
+            </article>
+
+            <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card md:col-span-2">
+              <h3 className="text-base font-semibold text-dus-ink">Preis-Entwicklung nach Viertel</h3>
+              <div className="mt-4 space-y-3">
+                {data.map((entry) => (
+                  <div key={entry.label}>
+                    <div className="mb-1 flex items-center justify-between text-xs text-slate-600">
+                      <span>{entry.label}</span>
+                      <span className="font-semibold text-dus-blue">+{entry.growth}%</span>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-gradient-to-r from-dus-blue to-dus-cyan" style={{ width: `${entry.growth * 11}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card md:col-span-3">
+              <h3 className="text-base font-semibold text-dus-ink">KI-Empfehlungen</h3>
+              <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                <li>Listings in Oberkassel mit virtueller Tour erhalten aktuell 1.6x mehr qualifizierte Anfragen als Listings ohne Tour.</li>
+                <li>Im Segment 90-130 m2 ist die Abschlusszeit in Bilk in den letzten 30 Tagen um 18% gesunken.</li>
+                <li>Eine Preisoptimierung von -2% in Derendorf könnte die Klickrate laut Prognosemodell um bis zu 11% steigern.</li>
+              </ul>
+            </article>
+          </section>
+        );
+      }
+
+      function LeadsBoard() {
+        const leads = [
+          { name: "Familie Schulte", area: "Kauf", district: "Oberkassel", budget: "bis 1.4 Mio EUR", stage: "Tour gebucht" },
+          { name: "Miriam Lange", area: "Miete", district: "Pempelfort", budget: "bis 3.500 EUR", stage: "Besichtigung offen" },
+          { name: "Luca Ferraro", area: "Kauf", district: "Derendorf", budget: "bis 980.000 EUR", stage: "Unterlagen angefragt" },
+        ];
+
+        return (
+          <section className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+            <h3 className="text-base font-semibold text-dus-ink">Lead Pipeline</h3>
+            <div className="mt-4 overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-3 py-2">Lead</th>
+                    <th className="px-3 py-2">Anliegen</th>
+                    <th className="px-3 py-2">Viertel</th>
+                    <th className="px-3 py-2">Budget</th>
+                    <th className="px-3 py-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leads.map((lead) => (
+                    <tr key={lead.name} className="border-t border-slate-100">
+                      <td className="px-3 py-2 font-semibold text-dus-ink">{lead.name}</td>
+                      <td className="px-3 py-2">{lead.area}</td>
+                      <td className="px-3 py-2">{lead.district}</td>
+                      <td className="px-3 py-2">{lead.budget}</td>
+                      <td className="px-3 py-2">
+                        <span className="rounded-full bg-dus-blue/10 px-2.5 py-1 text-xs font-semibold text-dus-blue">{lead.stage}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        );
+      }
+
+      function LegacyCRMModule() {
+        const [section, setSection] = useState("dashboard");
+        const [deals, setDeals] = useState(CRM_DEALS);
+        const [contacts, setContacts] = useState(CRM_CONTACTS);
+        const [toast, setToast] = useState(null);
+        const [selectedContact, setSelectedContact] = useState(null);
+        const [note, setNote] = useState("Follow-up: Objektunterlagen bis Freitag senden.");
+        const [moveTargets, setMoveTargets] = useState(() => {
+          const map = {};
+          CRM_DEALS.forEach((deal) => {
+            map[deal.id] = deal.stage;
+          });
+          return map;
+        });
+
+        const stageStats = useMemo(() => {
+          const stats = {};
+          CRM_STAGES.forEach((stage) => {
+            const stageDeals = deals.filter((deal) => deal.stage === stage);
+            stats[stage] = {
+              count: stageDeals.length,
+              value: stageDeals.reduce((sum, deal) => sum + deal.value, 0),
+            };
+          });
+          return stats;
+        }, [deals]);
+
+        const openDeals = deals.filter((deal) => deal.stage !== "Gewonnen").length;
+        const wonDeals = deals.filter((deal) => deal.stage === "Gewonnen").length;
+        const wonRate = Math.round((wonDeals / deals.length) * 100);
+
+        useEffect(() => {
+          if (!toast) return;
+          const timer = setTimeout(() => setToast(null), 2200);
+          return () => clearTimeout(timer);
+        }, [toast]);
+
+        const moveDeal = (dealId, targetStage) => {
+          setDeals((prev) => prev.map((deal) => (deal.id === dealId ? { ...deal, stage: targetStage } : deal)));
+          setToast(`Deal in '${targetStage}' verschoben.`);
+        };
+
+        const sectionTabs = [
+          { id: "dashboard", label: "Dashboard" },
+          { id: "pipeline", label: "Pipeline" },
+          { id: "contacts", label: "Kontakte" },
+          { id: "analytics", label: "Analytics" },
+        ];
+
+        const leadChannels = [
+          { label: "Portal Leads", value: 44, color: "#0055A4" },
+          { label: "Empfehlung", value: 24, color: "#18b7ea" },
+          { label: "Partner", value: 18, color: "#38bdf8" },
+          { label: "Direkt", value: 14, color: "#94a3b8" },
+        ];
+        const donut = (() => {
+          let current = 0;
+          return leadChannels
+            .map((item) => {
+              const start = (current / 100) * 360;
+              current += item.value;
+              const end = (current / 100) * 360;
+              return `${item.color} ${start}deg ${end}deg`;
+            })
+            .join(", ");
+        })();
+
+        return (
+          <section className="relative space-y-4">
+            <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Legacy CRM Layer</p>
+                  <h3 className="text-xl font-bold text-dus-ink">Agentur CRM Suite (nahtlos integriert)</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {sectionTabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setSection(tab.id)}
+                      className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                        section === tab.id
+                          ? "border-dus-blue bg-dus-blue/10 text-dus-blue"
+                          : "border-dus-silver bg-white text-slate-600 hover:border-dus-blue/40"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </article>
+
+            {section === "dashboard" && (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <article className="rounded-2xl border border-dus-silver bg-white p-4 shadow-card">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Offene Deals</p>
+                  <p className="mt-2 text-2xl font-bold text-dus-ink">{openDeals}</p>
+                </article>
+                <article className="rounded-2xl border border-dus-silver bg-white p-4 shadow-card">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Abschlussquote</p>
+                  <p className="mt-2 text-2xl font-bold text-dus-ink">{wonRate}%</p>
+                </article>
+                <article className="rounded-2xl border border-dus-silver bg-white p-4 shadow-card">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Pipeline Volumen</p>
+                  <p className="mt-2 text-2xl font-bold text-dus-ink">
+                    {new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", notation: "compact", maximumFractionDigits: 1 }).format(
+                      deals.reduce((sum, deal) => sum + deal.value, 0)
+                    )}
+                  </p>
+                </article>
+                <article className="rounded-2xl border border-dus-silver bg-white p-4 shadow-card">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Aktive Kontakte</p>
+                  <p className="mt-2 text-2xl font-bold text-dus-ink">{contacts.length}</p>
+                </article>
+
+                <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card md:col-span-2 xl:col-span-4">
+                  <h4 className="text-sm font-semibold text-dus-ink">Letzte CRM-Aktivitäten</h4>
+                  <ul className="mt-3 space-y-2">
+                    {CRM_ACTIVITY.map((item) => (
+                      <li key={item.id} className="rounded-xl border border-dus-silver bg-slate-50 px-3 py-2">
+                        <p className="text-sm text-slate-700">{item.text}</p>
+                        <p className="text-xs text-slate-500">{item.time}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              </div>
+            )}
+
+            {section === "pipeline" && (
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                {CRM_STAGES.map((stage) => (
+                  <article key={stage} className="rounded-2xl border border-dus-silver bg-white p-4 shadow-card">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-sm font-semibold text-dus-ink">{stage}</p>
+                      <span className="text-xs text-slate-500">{stageStats[stage].count}</span>
+                    </div>
+                    <p className="mb-3 text-xs text-slate-500">
+                      {new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", notation: "compact", maximumFractionDigits: 1 }).format(stageStats[stage].value)}
+                    </p>
+
+                    <div className="space-y-3">
+                      {deals
+                        .filter((deal) => deal.stage === stage)
+                        .map((deal) => (
+                          <div key={deal.id} className="rounded-xl border border-dus-silver bg-slate-50 p-3">
+                            <p className="text-xs text-slate-500">{deal.id}</p>
+                            <p className="text-sm font-semibold text-dus-ink">{deal.title}</p>
+                            <p className="text-xs text-slate-600">{deal.customer}</p>
+                            <p className="mt-1 text-xs text-slate-600">Owner: {deal.owner}</p>
+                            <p className="text-xs text-slate-600">Next: {deal.next}</p>
+
+                            <div className="mt-2 grid gap-2">
+                              <select
+                                value={moveTargets[deal.id]}
+                                onChange={(e) => setMoveTargets((prev) => ({ ...prev, [deal.id]: e.target.value }))}
+                                className="rounded-lg border border-dus-silver px-2 py-1.5 text-xs"
+                              >
+                                {CRM_STAGES.map((target) => (
+                                  <option key={target} value={target}>Nach {target}</option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => moveDeal(deal.id, moveTargets[deal.id])}
+                                className="rounded-lg bg-dus-blue px-2 py-1.5 text-xs font-semibold text-white transition hover:bg-[#004a8f]"
+                              >
+                                Verschieben
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {section === "contacts" && (
+              <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th className="px-3 py-2">Name</th>
+                        <th className="px-3 py-2">Unternehmen</th>
+                        <th className="px-3 py-2">Rolle</th>
+                        <th className="px-3 py-2">Status</th>
+                        <th className="px-3 py-2">Aktion</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {contacts.map((contact) => (
+                        <tr key={contact.id} className="border-t border-slate-100">
+                          <td className="px-3 py-2 font-semibold text-dus-ink">{contact.name}</td>
+                          <td className="px-3 py-2">{contact.company}</td>
+                          <td className="px-3 py-2">{contact.role}</td>
+                          <td className="px-3 py-2">
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${contact.status === "Aktiv" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                              {contact.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2">
+                            <button
+                              onClick={() => {
+                                setSelectedContact(contact);
+                                setNote(`Nächster Schritt für ${contact.name}: Kurzexposé + Terminoptionen senden.`);
+                              }}
+                              className="rounded-lg border border-dus-silver px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-dus-blue hover:text-dus-blue"
+                            >
+                              Akte öffnen
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+            )}
+
+            {section === "analytics" && (
+              <div className="grid gap-4 md:grid-cols-3">
+                <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card md:col-span-2">
+                  <h4 className="text-sm font-semibold text-dus-ink">Lead-Quellen</h4>
+                  <div className="mt-4 flex flex-wrap items-center gap-6">
+                    <div className="flex h-40 w-40 items-center justify-center rounded-full" style={{ background: `conic-gradient(${donut})` }}>
+                      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-sm font-bold text-dus-ink">100%</div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-slate-700">
+                      {leadChannels.map((channel) => (
+                        <li key={channel.label} className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ background: channel.color }} />
+                          <span>{channel.label}</span>
+                          <strong className="text-dus-ink">{channel.value}%</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+
+                <article className="rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+                  <h4 className="text-sm font-semibold text-dus-ink">Forecast nach Phase</h4>
+                  <div className="mt-3 space-y-3">
+                    {CRM_STAGES.map((stage) => {
+                      const total = deals.reduce((sum, deal) => sum + deal.value, 0) || 1;
+                      const share = (stageStats[stage].value / total) * 100;
+                      return (
+                        <div key={stage}>
+                          <div className="mb-1 flex items-center justify-between text-xs text-slate-600">
+                            <span>{stage}</span>
+                            <span>{share.toFixed(1)}%</span>
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full rounded-full bg-gradient-to-r from-dus-blue to-dus-cyan" style={{ width: `${share}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </article>
+              </div>
+            )}
+
+            {selectedContact && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4">
+                <div className="w-full max-w-xl rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+                  <h4 className="text-base font-bold text-dus-ink">Kontaktakte: {selectedContact.name}</h4>
+                  <p className="mt-1 text-sm text-slate-600">{selectedContact.company} · {selectedContact.email}</p>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={4}
+                    className="mt-4 w-full rounded-lg border border-dus-silver px-3 py-2 text-sm outline-none focus:border-dus-blue"
+                  />
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button
+                      onClick={() => setSelectedContact(null)}
+                      className="rounded-lg border border-dus-silver px-3 py-2 text-sm font-semibold text-slate-700"
+                    >
+                      Schließen
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedContact(null);
+                        setToast("Kontaktnotiz gespeichert.");
+                      }}
+                      className="rounded-lg bg-dus-blue px-3 py-2 text-sm font-semibold text-white"
+                    >
+                      Speichern
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {toast && (
+              <div className="fixed bottom-5 right-5 z-50 rounded-xl border border-dus-silver bg-white px-4 py-2 text-sm font-semibold text-dus-blue shadow-card">
+                {toast}
+              </div>
+            )}
+          </section>
+        );
+      }
+
+      function PlatformCockpit({ onBack }) {
+        const [activeTab, setActiveTab] = useState("search");
+
+        const tabs = [
+          { id: "search", label: "Search Cockpit", icon: SearchIcon },
+          { id: "insights", label: "Market Insights", icon: ChartIcon },
+          { id: "leads", label: "Leads", icon: UsersIcon },
+          { id: "crm", label: "CRM Suite", icon: PipelineIcon },
+        ];
+
+        return (
+          <div className="page-fade min-h-screen bg-slate-100 p-4 md:p-6">
+            <div className="mx-auto flex max-w-[1500px] flex-col overflow-hidden rounded-3xl bg-slate-100 shadow-soft md:min-h-[calc(100vh-3rem)] md:flex-row">
+              <aside className="w-full border-b border-dus-silver bg-white p-4 md:w-72 md:border-b-0 md:border-r md:p-6">
+                <div className="mb-6 flex items-center gap-3">
+                  <span className="inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-white">
+                    <img src={ASSETS.logo} alt="Düsseldorf Immo Online Logo" className="h-full w-full object-cover" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Düsseldorf Immo Online</p>
+                    <h1 className="text-lg font-bold text-dus-ink">Immo-Cockpit</h1>
+                  </div>
+                </div>
+
+                <nav className="grid gap-2">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const active = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition ${
+                          active
+                            ? "border-dus-blue/30 bg-dus-blue/10 text-dus-blue"
+                            : "border-transparent bg-slate-50 text-slate-600 hover:border-dus-silver hover:bg-white"
+                        }`}
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <Icon className="h-4 w-4" />
+                          {tab.label}
+                        </span>
+                        <span className={`h-2 w-2 rounded-full ${active ? "bg-dus-blue" : "bg-slate-300"}`} />
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                <button
+                  onClick={onBack}
+                  className="mt-6 w-full rounded-lg border border-dus-silver bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-dus-blue hover:text-dus-blue"
+                >
+                  Zurück zur Website
+                </button>
+
+                <div className="mt-4 rounded-2xl border border-dus-silver bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Standort</p>
+                  <p className="mt-1 text-sm text-slate-700">Düsseldorf · Medienhafen & Innenstadt</p>
+                </div>
+              </aside>
+
+              <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                <header className="mb-4 rounded-2xl border border-dus-silver bg-white p-5 shadow-card">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Plattform-Modus</p>
+                  <h2 className="text-2xl font-bold text-dus-ink">
+                    {activeTab === "search" && "Objektsuche & Virtuelle Besichtigung"}
+                    {activeTab === "insights" && "Markt-Performance Düsseldorf"}
+                    {activeTab === "leads" && "Interessenten & Pipeline"}
+                    {activeTab === "crm" && "CRM Suite (Legacy)"}
+                  </h2>
+                </header>
+
+                {activeTab === "search" && <SearchCockpit />}
+                {activeTab === "insights" && <MarketInsights />}
+                {activeTab === "leads" && <LeadsBoard />}
+                {activeTab === "crm" && <LegacyCRMModule />}
+              </main>
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        const [view, setView] = useState("landing");
+
+        if (view === "cockpit") {
+          return <PlatformCockpit onBack={() => setView("landing")} />;
+        }
+
+        return <LandingPage onEnterCockpit={() => setView("cockpit")} />;
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
